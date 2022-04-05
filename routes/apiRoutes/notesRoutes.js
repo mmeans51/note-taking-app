@@ -1,30 +1,49 @@
 const router = require('express').Router();
-const { v4: uuidv4 } = require('uuid');
-const { notes } = require('../../db/db');
-const { createNewNote, findById, editNote, removeNote } = require('../../lib/notes');
+var db = require('../../db/db.json');
+const fs = require('fs');
+
+
+const { validateNote, newNote, findbyId } = require('../../lib/note');
 
 router.get('/notes', (req, res) => {
-    res.json(notes);
+    console.log(db);
+    res.json(db);
 });
+
+router.get('/notes/:id', (req, res) => {
+    const params = [req.params.id];
+    const result = findById(req.params.id, db);
+    console.log(result);
+    if(result) {
+        res.json(result);
+    } else {
+        res.send(404);
+    }
+});
+
 
 router.post('/notes', (req, res) => {
-
-    // creates new note if id exists, otherwise edits existing note
-    if (!req.body.id) {
-        req.body.id = uuidv4();
-        createNewNote(req.body, notes);
+    console.log(req.body);
+    req.body.id = db.length.toString();
+      if(!validateNote(req.body)) {
+        res.status(400).send('The note is not properly formatted.');
     } else {
-        editNote(req.body, notes);
+    const note = newNote(req.body, db);
+    res.json(note);
     }
-
-    res.json(req.body);
+    
 });
 
-router.delete('/notes/:id', (req, res) => {
-    const note = findById(req.params.id, notes);
-
-    removeNote(note, notes);
-    res.json();
+router.delete(`/notes/:id`, (req, res) => {
+  
+    var oldNotes = db;
+    const newNotes = oldNotes.filter((n) => n.id !== req.params.id );
+    console.log(newNotes);
+    
+    fs.writeFileSync('./db/db.json', JSON.stringify(newNotes));
+    db = newNotes;
+    res.json(newNotes); 
 });
+
 
 module.exports = router;

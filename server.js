@@ -1,11 +1,11 @@
 const express = require('express');
+const apiRoutes = require('./routes/apiroutes');
+const htmlRoutes = require('./routes/htmlroutes');
+const path = require('path');
+const fs = require('fs')
 const app = express();
-const PORT = process.env.PORT || 3001;
+const db = require('./db/db.json');
 
-const apiRoutes = require('./routes/apiRoutes');
-const htmlRoutes = require('./routes/htmlRoutes');
-
-// parse POST data
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -14,6 +14,5 @@ app.use('/', htmlRoutes);
 
 app.use(express.static('public'));
 
-app.listen(PORT, () => {
-    console.log(`API server now on port ${PORT}!`);
-});
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => console.log(`Listening on PORT: ${PORT}`));
